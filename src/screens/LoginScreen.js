@@ -3,20 +3,23 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  ActivityIndicator
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// Theme imports
+import { theme, layout, typography } from '../styles';
+import { Button, Input } from '../components/ui';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  // This fixes the hidePassword is not defined error
+  const [hidePassword, setHidePassword] = useState(true);
   const { login, isLoading } = useAuth();
 
   const handleLogin = async () => {
@@ -31,60 +34,83 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setUsername('demo');
+    setPassword('password');
+    
+    // Add slight delay to show the user what's happening
+    setTimeout(async () => {
+      await login('demo', 'password');
+    }, 500);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={layout.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={layout.scrollContent}>
           <View style={styles.logoContainer}>
-            <Ionicons name="wallet-outline" size={100} color="#4F46E5" />
-            <Text style={styles.appName}>Expense Tracker</Text>
-            <Text style={styles.tagline}>Manage your finances on the go</Text>
+            <Ionicons name="wallet-outline" size={100} color={theme.colors.primary} />
+            <Text style={typography.title}>Expense Tracker</Text>
+            <Text style={[typography.body, styles.tagline]}>Manage your finances on the go</Text>
           </View>
 
           <View style={styles.formContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Username"
-              placeholderTextColor="#AAA"
+            <Input
+              label="Username"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
+              placeholder="Username"
+              leftIcon={<Ionicons name="person-outline" size={20} color={theme.colors.gray500} style={{marginRight: theme.spacing.sm}} />}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#AAA"
+            
+            <Input
+              label="Password"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={hidePassword}
+              placeholder="Password"
+              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={theme.colors.gray500} style={{marginRight: theme.spacing.sm}} />}
+              rightIcon={
+                <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
+                  <Ionicons 
+                    name={hidePassword ? "eye-outline" : "eye-off-outline"} 
+                    size={20} 
+                    color={theme.colors.gray500}
+                  />
+                </TouchableOpacity>
+              }
             />
 
-            <TouchableOpacity
-              style={styles.loginButton}
+            <Button
+              title="Login"
               onPress={handleLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.loginButtonText}>Login</Text>
-              )}
-            </TouchableOpacity>
+              isLoading={isLoading}
+              style={{marginBottom: theme.spacing.md}}
+            />
 
-            <TouchableOpacity
-              style={styles.registerButton}
+            <Button
+              title="Try Demo Account"
+              onPress={handleDemoLogin}
+              type="secondary"
+              style={{marginBottom: theme.spacing.xl}}
+            />
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <Button
+              title="Create Account"
               onPress={() => navigation.navigate('Register')}
-              disabled={isLoading}
-            >
-              <Text style={styles.registerButtonText}>Create Account</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.demoText}>
-              Demo credentials: username: demo, password: password
-            </Text>
+              type="secondary"
+              style={{marginTop: theme.spacing.md}}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -93,71 +119,31 @@ const LoginScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
-  },
-  appName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4F46E5',
-    marginBottom: 8,
+    marginBottom: theme.spacing.xxxl,
   },
   tagline: {
-    fontSize: 16,
-    color: '#64748B',
+    color: theme.colors.gray500,
+    marginTop: theme.spacing.xs,
   },
   formContainer: {
     width: '100%',
   },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  loginButton: {
-    backgroundColor: '#4F46E5',
-    borderRadius: 8,
-    padding: 15,
+  divider: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginVertical: theme.spacing.xl,
   },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.gray200,
   },
-  registerButton: {
-    borderWidth: 1,
-    borderColor: '#4F46E5',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  registerButtonText: {
-    color: '#4F46E5',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  demoText: {
-    textAlign: 'center',
-    color: '#64748B',
-    fontSize: 14,
-    marginTop: 20,
+  dividerText: {
+    paddingHorizontal: theme.spacing.md,
+    color: theme.colors.gray500,
+    fontWeight: theme.typography.fontWeights.medium,
   },
 });
 
